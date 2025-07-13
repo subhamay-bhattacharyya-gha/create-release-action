@@ -1,44 +1,44 @@
-name: 'Action Name'
-description: 'Action Description'
+name: Generate Next Release Tag
+description: Get the latest release tag and generate the next one in the format R-<sequence>-YYYYMMDDHHMMSS
 
 inputs:
-  input-1:
-    description: Input description.
-    required: false
-    default: default-value
-  input-2:
-    description: Input description.
-    required: false
-    default: default-value
-  input-3:
-    description: Input description.
-    required: false
-    default: default-value
   github-token:
-    description: 'GitHub token'
     required: true
+    description: GitHub token for GitHub CLI access
+outputs:
+  new-tag:
+    description: The new release tag (e.g., R-004-20250702191245)
+    value: ${{ steps.generate.outputs.new_tag }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.x
+    - name: Get current UTC timestamp
+      id: time
+      run: echo "timestamp=$(date -u +'%Y%m%d%H%M%S')" >> "$GITHUB_OUTPUT"
+      shell: bash
 
-    - name: Sample step to call GitHub API
+    - name: Get latest release tag
+      id: latest
+      run: |
+        latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' || echo "")
+        echo "latest_tag=$latest_tag" >> "$GITHUB_OUTPUT"
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
-      run: |
-        ISSUE_NUMBER="${{ github.event.issue.number }}"
-        REPO="${{ github.repository }}"
-        OWNER=$(echo $REPO | cut -d'/' -f1)
-        BRANCH_NAME="${{ steps.create-branch.outputs.branch-name }}"
-        COMMENT_BODY="Branch [$BRANCH_NAME](https://github.com/$OWNER/$REPO/tree/$BRANCH_NAME) created 🚀"
 
-        curl -s -X POST \
-          -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d "{\"body\": \"$COMMENT_BODY\"}" \
-          https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/comments
+    - name: Generate Release Tag
+      id: generate-tag
+      run: |
+        latest="${{ steps.latest.outputs.latest_tag }}"
+        if [[ "$latest" =~ ^R-([0-9]+)-[0-9]{14}$ ]]; then
+          seq_num=$(echo "$latest" | cut -d'-' -f2)
+          new_seq=$(printf "%03d" $((10#$seq_num + 1)))
+        else
+          echo "⚠️ No valid tag found. Starting from 1."
+          new_seq="1"
+        fi
+
+        new_tag="Rel-${new_seq}-${{ steps.time.outputs.timestamp }}"
+        echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
+      shell: bash
