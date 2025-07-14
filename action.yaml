@@ -72,6 +72,6 @@ runs:
       shell: bash
       run: |
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "### 📌 GitHub Release" >> "$GITHUB_STEP_SUMMARY"
+        echo "### 🚀 GitHub Release" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "📝 **[Click here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.generate-tag.outputs.new_tag }}) to publish the release**" >> "$GITHUB_STEP_SUMMARY"
+        echo "📝 **[Click here to publish the release](${{ steps.create-draft-release.outputs.release_url }}) to publish the release**" >> "$GITHUB_STEP_SUMMARY"
