@@ -59,6 +59,7 @@ runs:
         echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
 
     - name: Create Draft Release
+      id: create-draft-release
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
@@ -68,7 +69,11 @@ runs:
           --notes "Auto-generated draft release." \
           --draft
 
+        html_url=$(gh release view "$tag" --json url --jq '.url')
+        echo "release_url=$html_url" >> "$GITHUB_OUTPUT"
+        
     - name: Show publish link
+      id: show-publish-link
       shell: bash
       run: |
         echo "" >> "$GITHUB_STEP_SUMMARY"
