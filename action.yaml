@@ -111,7 +111,7 @@ runs:
         echo "" >> "$GITHUB_STEP_SUMMARY"
         echo "🔗 **[View Draft Release](${{ steps.create-release.outputs.release_url }})**" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "🧪 **[Click here to publish the release](https://github.com/subhamay-bhattacharyya/create-release-action/.github/workflows/publish-release.yml/dispatches)**" >> "$GITHUB_STEP_SUMMARY"
+        echo "🧪 **[Click here to publish the release](https://github.com/subhamay-bhattacharyya-gha/create-release-action/.github/workflows/publish-release.yml/dispatches)**" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
         echo "_After clicking, you must enter the tag: \`$tag\` manually in the input box._" >> "$GITHUB_STEP_SUMMARY"
 
