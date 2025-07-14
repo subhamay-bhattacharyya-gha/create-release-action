@@ -69,9 +69,9 @@ runs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Show publish link
-        run: |
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "### 📌 GitHub Release" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "📝 **[Click here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.generate-tag.outputs.new_tag }}) to publish the release**" >> "$GITHUB_STEP_SUMMARY"
+    - name: Show publish link
+      run: |
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "### 📌 GitHub Release" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "📝 **[Click here](https://github.com/${{ github.repository }}/releases/tag/${{ steps.generate-tag.outputs.new_tag }}) to publish the release**" >> "$GITHUB_STEP_SUMMARY"
