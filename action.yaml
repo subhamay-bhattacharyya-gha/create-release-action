@@ -5,6 +5,7 @@ inputs:
   github-token:
     required: true
     description: GitHub token for GitHub CLI access
+
 outputs:
   new-tag:
     description: The new release tag (e.g., R-004-20250702191245)
@@ -13,39 +14,38 @@ outputs:
 runs:
   using: "composite"
   steps:
-
     - name: Set Checkout Ref
       id: set-ref
       shell: bash
       run: |
         if [[ -n "${{ inputs.release-tag }}" ]]; then
-          echo "ref=${{ inputs.release-tag }}" >> $GITHUB_OUTPUT
+          echo "ref=${{ inputs.release-tag }}" >> "$GITHUB_OUTPUT"
         else
-          echo "ref=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          echo "ref=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Checkout Repo
-      id: checkout
       uses: actions/checkout@v4
       with:
         ref: ${{ steps.set-ref.outputs.ref }}
 
     - name: Get current UTC timestamp
       id: time
-      run: echo "timestamp=$(date -u +'%Y%m%d%H%M%S')" >> "$GITHUB_OUTPUT"
       shell: bash
+      run: echo "timestamp=$(date -u +'%Y%m%d%H%M%S')" >> "$GITHUB_OUTPUT"
 
     - name: Get latest release tag
       id: latest-tag
+      shell: bash
       run: |
         latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' || echo "")
         echo "latest_tag=$latest_tag" >> "$GITHUB_OUTPUT"
-      shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
 
     - name: Generate Release Tag
       id: generate-tag
+      shell: bash
       run: |
         latest_tag="${{ steps.latest-tag.outputs.latest_tag }}"
         if [[ "$latest_tag" =~ ^Rel-([0-9]+)-[0-9]{14}$ ]]; then
@@ -53,23 +53,23 @@ runs:
           new_seq=$(printf "%03d" $((10#$seq_num + 1)))
         else
           echo "⚠️ No valid tag found. Starting from 1."
-          new_seq="1"
+          new_seq="001"
         fi
-
         new_tag="Rel-${new_seq}-${{ steps.time.outputs.timestamp }}"
         echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
-      shell: bash
 
     - name: Create Draft Release
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         gh release create "${{ steps.generate-tag.outputs.new_tag }}" \
-            --title "Release ${{ steps.taggen.outputs.new-tag }}" \
-            --notes "Auto-generated draft release." \
-            --draft
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          --title "Release ${{ steps.generate-tag.outputs.new_tag }}" \
+          --notes "Auto-generated draft release." \
+          --draft
 
     - name: Show publish link
+      shell: bash
       run: |
         echo "" >> "$GITHUB_STEP_SUMMARY"
         echo "### 📌 GitHub Release" >> "$GITHUB_STEP_SUMMARY"
