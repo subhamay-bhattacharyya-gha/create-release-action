@@ -65,9 +65,19 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         tag="${{ steps.generate-tag.outputs.new_tag }}"
-        
-        # Generate changelog from previous release to HEAD
-        changelog=$(git log "$(git describe --tags --abbrev=0 2>/dev/null)"..HEAD --pretty=format:"- %s (%an)" || echo "Auto-generated release")
+
+        # Try to get changelog from last tag; fallback to default message
+        last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        if [[ -n "$last_tag" ]]; then
+          changelog=$(git log "$last_tag"..HEAD --pretty=format:"- %s (%an)")
+        else
+          changelog=""
+        fi
+
+        # Fallback changelog message if empty
+        if [[ -z "$changelog" ]]; then
+          changelog="Auto-generated release"
+        fi
 
         # Detect release assets
         assets=""
@@ -76,11 +86,11 @@ runs:
         done
 
         echo "Creating GitHub release for tag: $tag"
-        
+
         # shellcheck disable=SC2086
         eval gh release create "$tag" \
           --title "Release $tag" \
-          --notes "$changelog" \
+          --notes \"$changelog\" \
           $assets
 
         html_url=$(gh release view "$tag" --json url --jq '.url')
