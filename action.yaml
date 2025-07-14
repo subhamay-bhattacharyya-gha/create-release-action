@@ -97,13 +97,22 @@ runs:
         html_url=$(gh release view "$tag" --json url --jq '.url')
         echo "release_url=$html_url" >> "$GITHUB_OUTPUT"
 
-    - name: Show draft release link
+    - name: Show release link
       shell: bash
       run: |
+        tag="${{ steps.generate-tag.outputs.new_tag }}"
+        repo_url="https://github.com/${{ github.repository }}"
+        publish_url="${repo_url}/actions/workflows/publish-release.yml/dispatches"
+
         echo "" >> "$GITHUB_STEP_SUMMARY"
         echo "### 🚀 Draft GitHub Release Created" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "🆔 **Tag**: \`${{ steps.generate-tag.outputs.new_tag }}\`" >> "$GITHUB_STEP_SUMMARY"
+        echo "🆔 **Tag**: \`$tag\`" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "🔗 **[Click here to view and publish the release](${{ steps.create-release.outputs.release_url }})**" >> "$GITHUB_STEP_SUMMARY"
+        echo "🔗 **[View Draft Release](${{ steps.create-release.outputs.release_url }})**" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "🧪 **[Click here to publish the release](https://github.com/${{ github.repository }}/actions/workflows/publish-release.yml/dispatches)**" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "_After clicking, you must enter the tag: \`$tag\` manually in the input box._" >> "$GITHUB_STEP_SUMMARY"
+
 

@@ -1,0 +1,19 @@
+name: Publish Draft Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag of the draft release to publish"
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish draft release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Publishing draft release: ${{ github.event.inputs.tag }}"
+          gh release edit "${{ github.event.inputs.tag }}" --draft=false
