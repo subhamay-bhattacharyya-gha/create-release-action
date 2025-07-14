@@ -66,7 +66,7 @@ runs:
       run: |
         tag="${{ steps.generate-tag.outputs.new_tag }}"
 
-        # Try to get changelog from last tag; fallback to default message
+        # Get changelog from last tag; fallback to default message
         last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
         if [[ -n "$last_tag" ]]; then
           changelog=$(git log "$last_tag"..HEAD --pretty=format:"- %s (%an)")
@@ -74,27 +74,28 @@ runs:
           changelog=""
         fi
 
-        # Fallback changelog message if empty
+        # Default changelog if empty
         if [[ -z "$changelog" ]]; then
           changelog="Auto-generated release"
         fi
 
-        # Detect release assets
-        assets=""
+        # Collect assets (if any)
+        assets=()
         for file in dist/*.zip dist/*.tar.gz; do
-          [[ -f "$file" ]] && assets+=" \"$file\""
+          [[ -f "$file" ]] && assets+=("$file")
         done
 
         echo "Creating GitHub release for tag: $tag"
 
-        # shellcheck disable=SC2086
-        eval gh release create "$tag" \
+        # Create release using array-safe syntax
+        gh release create "$tag" \
           --title "Release $tag" \
-          --notes \"$changelog\" \
-          $assets
+          --notes "$changelog" \
+          "${assets[@]}"
 
         html_url=$(gh release view "$tag" --json url --jq '.url')
         echo "release_url=$html_url" >> "$GITHUB_OUTPUT"
+
 
     - name: Show release link
       shell: bash
