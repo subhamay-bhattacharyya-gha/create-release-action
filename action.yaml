@@ -64,8 +64,10 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        gh release create "${{ steps.generate-tag.outputs.new_tag }}" \
-          --title "Release ${{ steps.generate-tag.outputs.new_tag }}" \
+        tag="${{ steps.generate-tag.outputs.new_tag }}"
+
+        gh release create "$tag" \
+          --title "Release $tag" \
           --notes "Auto-generated draft release." \
           --draft
 
