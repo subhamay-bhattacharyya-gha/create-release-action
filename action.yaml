@@ -71,7 +71,7 @@ runs:
 
         html_url=$(gh release view "$tag" --json url --jq '.url')
         echo "release_url=$html_url" >> "$GITHUB_OUTPUT"
-        
+
     - name: Show publish link
       id: show-publish-link
       shell: bash
@@ -79,4 +79,4 @@ runs:
         echo "" >> "$GITHUB_STEP_SUMMARY"
         echo "### 🚀 GitHub Release" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "📝 **[Click here to publish the release](${{ steps.create-draft-release.outputs.release_url }}) to publish the release**" >> "$GITHUB_STEP_SUMMARY"
+        echo "📝 **[Click here 👉](${{ steps.create-draft-release.outputs.release_url }}) to publish the release**" >> "$GITHUB_STEP_SUMMARY"
