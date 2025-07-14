@@ -58,7 +58,7 @@ runs:
         new_tag="Rel-${new_seq}-${{ steps.time.outputs.timestamp }}"
         echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
 
-    - name: Create Published Release
+    - name: Create Draft Release
       id: create-release
       shell: bash
       env:
@@ -85,24 +85,25 @@ runs:
           [[ -f "$file" ]] && assets+=("$file")
         done
 
-        echo "Creating GitHub release for tag: $tag"
+        echo "Creating **draft** GitHub release for tag: $tag"
 
-        # Create release using array-safe syntax
+        # Create draft release
         gh release create "$tag" \
           --title "Release $tag" \
           --notes "$changelog" \
+          --draft \
           "${assets[@]}"
 
         html_url=$(gh release view "$tag" --json url --jq '.url')
         echo "release_url=$html_url" >> "$GITHUB_OUTPUT"
 
-
-    - name: Show release link
+    - name: Show draft release link
       shell: bash
       run: |
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "### 🚀 GitHub Release Published" >> "$GITHUB_STEP_SUMMARY"
+        echo "### 🚀 Draft GitHub Release Created" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
         echo "🆔 **Tag**: \`${{ steps.generate-tag.outputs.new_tag }}\`" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "🔗 **[View Release](${{ steps.create-release.outputs.release_url }})**" >> "$GITHUB_STEP_SUMMARY"
+        echo "🔗 **[Click here to view and publish the release](${{ steps.create-release.outputs.release_url }})**" >> "$GITHUB_STEP_SUMMARY"
+
