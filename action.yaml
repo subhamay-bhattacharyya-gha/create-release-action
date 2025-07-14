@@ -1,5 +1,5 @@
 name: Generate Next Release Tag
-description: Get the latest release tag and generate the next one in the format R-<sequence>-YYYYMMDDHHMMSS
+description: Get the latest release tag and generate the next one in the format Rel-<sequence>-YYYYMMDDHHMMSS
 
 inputs:
   github-token:
@@ -8,7 +8,7 @@ inputs:
 
 outputs:
   new-tag:
-    description: The new release tag (e.g., R-004-20250702191245)
+    description: The new release tag (e.g., Rel-004-20250702191245)
     value: ${{ steps.generate-tag.outputs.new_tag }}
 
 runs:
@@ -58,27 +58,40 @@ runs:
         new_tag="Rel-${new_seq}-${{ steps.time.outputs.timestamp }}"
         echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
 
-    - name: Create Draft Release
-      id: create-draft-release
+    - name: Create Published Release
+      id: create-release
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         tag="${{ steps.generate-tag.outputs.new_tag }}"
+        
+        # Generate changelog from previous release to HEAD
+        changelog=$(git log "$(git describe --tags --abbrev=0 2>/dev/null)"..HEAD --pretty=format:"- %s (%an)" || echo "Auto-generated release")
 
-        gh release create "$tag" \
+        # Detect release assets
+        assets=""
+        for file in dist/*.zip dist/*.tar.gz; do
+          [[ -f "$file" ]] && assets+=" \"$file\""
+        done
+
+        echo "Creating GitHub release for tag: $tag"
+        
+        # shellcheck disable=SC2086
+        eval gh release create "$tag" \
           --title "Release $tag" \
-          --notes "Auto-generated draft release." \
-          --draft
+          --notes "$changelog" \
+          $assets
 
         html_url=$(gh release view "$tag" --json url --jq '.url')
         echo "release_url=$html_url" >> "$GITHUB_OUTPUT"
 
-    - name: Show publish link
-      id: show-publish-link
+    - name: Show release link
       shell: bash
       run: |
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "### 🚀 GitHub Release" >> "$GITHUB_STEP_SUMMARY"
+        echo "### 🚀 GitHub Release Published" >> "$GITHUB_STEP_SUMMARY"
         echo "" >> "$GITHUB_STEP_SUMMARY"
-        echo "📝 **[Click here 👉](${{ steps.create-draft-release.outputs.release_url }}) to publish the release**" >> "$GITHUB_STEP_SUMMARY"
+        echo "🆔 **Tag**: \`${{ steps.generate-tag.outputs.new_tag }}\`" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "🔗 **[View Release](${{ steps.create-release.outputs.release_url }})**" >> "$GITHUB_STEP_SUMMARY"
