@@ -101,7 +101,7 @@ runs:
       shell: bash
       run: |
         tag="${{ steps.generate-tag.outputs.new_tag }}"
-        dispatch_url="https://github.com/${{ github.repository }}/actions/workflows/publish-release.yaml/dispatch"
+        dispatch_url="https://github.com/${{ github.repository }}/.github/actions/workflows/publish-release.yaml/dispatch"
 
         echo "" >> "$GITHUB_STEP_SUMMARY"
         echo "### 🚀 Draft GitHub Release Created" >> "$GITHUB_STEP_SUMMARY"
