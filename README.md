@@ -1,52 +1,64 @@
-# GitHub Action Template Repository
+# Create Release GitHub Action
 
-![Release](https://github.com/subhamay-bhattacharyya-gha/github-action-template/actions/workflows/release.yaml/badge.svg)&nbsp;![Commit Activity](https://img.shields.io/github/commit-activity/t/subhamay-bhattacharyya-gha/github-action-template)&nbsp;![Last Commit](https://img.shields.io/github/last-commit/subhamay-bhattacharyya-gha/github-action-template)&nbsp;![Release Date](https://img.shields.io/github/release-date/subhamay-bhattacharyya-gha/github-action-template)&nbsp;![Repo Size](https://img.shields.io/github/repo-size/subhamay-bhattacharyya-gha/github-action-template)&nbsp;![File Count](https://img.shields.io/github/directory-file-count/subhamay-bhattacharyya-gha/github-action-template)&nbsp;![Issues](https://img.shields.io/github/issues/subhamay-bhattacharyya-gha/github-action-template)&nbsp;![Top Language](https://img.shields.io/github/languages/top/subhamay-bhattacharyya-gha/github-action-template)&nbsp;![Custom Endpoint](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bsubhamay/06e35985280456b113298ed56c626e73/raw/github-action-template.json?)
+![Release](https://github.com/subhamay-bhattacharyya-gha/create-release-action/actions/workflows/release.yaml/badge.svg)&nbsp;![Commit Activity](https://img.shields.io/github/commit-activity/t/subhamay-bhattacharyya-gha/create-release-action)&nbsp;![Last Commit](https://img.shields.io/github/last-commit/subhamay-bhattacharyya-gha/create-release-action)&nbsp;![Release Date](https://img.shields.io/github/release-date/subhamay-bhattacharyya-gha/create-release-action)&nbsp;![Repo Size](https://img.shields.io/github/repo-size/subhamay-bhattacharyya-gha/create-release-action)&nbsp;![File Count](https://img.shields.io/github/directory-file-count/subhamay-bhattacharyya-gha/create-release-action)&nbsp;![Issues](https://img.shields.io/github/issues/subhamay-bhattacharyya-gha/create-release-action)&nbsp;![Top Language](https://img.shields.io/github/languages/top/subhamay-bhattacharyya-gha/create-release-action)&nbsp;![Custom Endpoint](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bsubhamay/46c708478f131e15ec4fa24d658bc75d/raw/create-release-action.json?)
 
-A Template GitHub Repository to be used to create a composite action.
-
-## Action Name
-
-### Action Description
-
-This GitHub Action provides a reusable composite workflow that sets up Python and interacts with the GitHub API to post a comment on an issue, including a link to a created branch.
+> 🔖 A composite GitHub Action that generates a timestamped release tag, creates a draft GitHub release, and optionally triggers auto-publish.
 
 ---
 
-## Inputs
+## 🧩 Action: `create-release-action`
 
-| Name           | Description         | Required | Default        |
-|----------------|---------------------|----------|----------------|
-| `input-1`      | Input description.  | No       | `default-value`|
-| `input-2`      | Input description.  | No       | `default-value`|
-| `input-3`      | Input description.  | No       | `default-value`|
-| `github-token` | GitHub token. Used for API authentication. | Yes | — |
+This GitHub Action generates the **next release tag** in the format `Rel-<sequence>-YYYYMMDDHHMMSS`, creates a **draft release**, and optionally displays a **clickable publish link** that triggers a GitHub Action or external API.
 
 ---
 
-## Example Usage
+## 🚀 Features
+
+- Generates the next semantic release tag using the latest tag
+- Formats tags as `Rel-<sequence>-<timestamp>`
+- Creates a **draft release**
+- Optionally attaches release assets from `dist/*.zip` or `dist/*.tar.gz`
+- Displays a link to **manually or automatically publish** the release
+
+---
+
+## 🔧 Inputs
+
+| Name           | Description                                  | Required |
+|----------------|----------------------------------------------|----------|
+| `github-token` | GitHub token used for API authentication     | ✅ Yes   |
+
+---
+
+## ✅ Outputs
+
+| Name       | Description                        |
+|------------|------------------------------------|
+| `new-tag`  | The generated release tag (e.g. `Rel-003-20250714183045`) |
+
+---
+
+## 📦 Example Usage
 
 ```yaml
-name: Example Workflow
+name: Create Release
 
 on:
-  issues:
-    types: [opened]
+  workflow_dispatch:
 
 jobs:
-  example:
+  generate-release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run Custom Action
-        uses: your-org/your-action-repo@v1
+      - name: Generate release tag and create draft
+        uses: subhamay-bhattacharyya-gha/create-release-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          input-1: your-value
-          input-2: another-value
-          input-3: something-else
 ```
+--
 
 ## License
 
