@@ -5,6 +5,9 @@ inputs:
   github-token:
     required: true
     description: GitHub token for GitHub CLI access
+  release-tag:
+    required: false
+    description: Optional git ref (branch, tag, or commit) to checkout. If not provided, defaults to the current branch
 
 outputs:
   new-tag:
