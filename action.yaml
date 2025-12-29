@@ -10,6 +10,9 @@ outputs:
   new-tag:
     description: The new release tag (e.g., Rel-004-20250702191245)
     value: ${{ steps.generate-tag.outputs.new_tag }}
+  release_url:
+    description: The URL of the created draft release
+    value: ${{ steps.create-release.outputs.release_url }}
 
 runs:
   using: "composite"
