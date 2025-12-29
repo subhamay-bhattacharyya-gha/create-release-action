@@ -90,11 +90,18 @@ runs:
         echo "Creating **draft** GitHub release for tag: $tag"
 
         # Create draft release
-        gh release create "$tag" \
-          --title "Release $tag" \
-          --notes "$changelog" \
-          --draft \
-          "${assets[@]}"
+        if ((${#assets[@]} > 0)); then
+          gh release create "$tag" \
+            --title "Release $tag" \
+            --notes "$changelog" \
+            --draft \
+            "${assets[@]}"
+        else
+          gh release create "$tag" \
+            --title "Release $tag" \
+            --notes "$changelog" \
+            --draft
+        fi
 
         html_url=$(gh release view "$tag" --json url --jq '.url')
         echo "release_url=$html_url" >> "$GITHUB_OUTPUT"
