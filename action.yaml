@@ -7,7 +7,7 @@ inputs:
     description: GitHub token for GitHub CLI access
   release-tag:
     required: false
-    description: Optional release tag to checkout (defaults to current branch)
+    description: Optional git ref (branch, tag, or commit) to checkout. If not provided, defaults to the current branch
 
 outputs:
   new-tag:
