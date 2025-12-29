@@ -1,44 +1,123 @@
-name: 'Action Name'
-description: 'Action Description'
+name: Generate Next Release Tag
+description: Get the latest release tag and generate the next one in the format Rel-<sequence>-YYYYMMDDHHMMSS
 
 inputs:
-  input-1:
-    description: Input description.
-    required: false
-    default: default-value
-  input-2:
-    description: Input description.
-    required: false
-    default: default-value
-  input-3:
-    description: Input description.
-    required: false
-    default: default-value
   github-token:
-    description: 'GitHub token'
     required: true
+    description: GitHub token for GitHub CLI access
+
+outputs:
+  new-tag:
+    description: The new release tag (e.g., Rel-004-20250702191245)
+    value: ${{ steps.generate-tag.outputs.new_tag }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
+    - name: Set Checkout Ref
+      id: set-ref
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.release-tag }}" ]]; then
+          echo "ref=${{ inputs.release-tag }}" >> "$GITHUB_OUTPUT"
+        else
+          echo "ref=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Checkout Repo
+      uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: 3.x
+        ref: ${{ steps.set-ref.outputs.ref }}
 
-    - name: Sample step to call GitHub API
+    - name: Get current UTC timestamp
+      id: time
+      shell: bash
+      run: echo "timestamp=$(date -u +'%Y%m%d%H%M%S')" >> "$GITHUB_OUTPUT"
+
+    - name: Get latest release tag
+      id: latest-tag
+      shell: bash
+      run: |
+        latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' || echo "")
+        echo "latest_tag=$latest_tag" >> "$GITHUB_OUTPUT"
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+
+    - name: Generate Release Tag
+      id: generate-tag
+      shell: bash
+      run: |
+        latest_tag="${{ steps.latest-tag.outputs.latest_tag }}"
+        if [[ "$latest_tag" =~ ^Rel-([0-9]+)-[0-9]{14}$ ]]; then
+          seq_num=$(echo "$latest_tag" | cut -d'-' -f2)
+          new_seq=$(printf "%03d" $((10#$seq_num + 1)))
+        else
+          echo "⚠️ No valid tag found. Starting from 1."
+          new_seq="001"
+        fi
+        new_tag="Rel-${new_seq}-${{ steps.time.outputs.timestamp }}"
+        echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
+
+    - name: Create Draft Release
+      id: create-release
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
-        ISSUE_NUMBER="${{ github.event.issue.number }}"
-        REPO="${{ github.repository }}"
-        OWNER=$(echo $REPO | cut -d'/' -f1)
-        BRANCH_NAME="${{ steps.create-branch.outputs.branch-name }}"
-        COMMENT_BODY="Branch [$BRANCH_NAME](https://github.com/$OWNER/$REPO/tree/$BRANCH_NAME) created 🚀"
+        tag="${{ steps.generate-tag.outputs.new_tag }}"
 
-        curl -s -X POST \
-          -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d "{\"body\": \"$COMMENT_BODY\"}" \
-          https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/comments
+        # Get changelog from last tag; fallback to default message
+        last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        if [[ -n "$last_tag" ]]; then
+          changelog=$(git log "$last_tag"..HEAD --pretty=format:"- %s (%an)")
+        else
+          changelog=""
+        fi
+
+        # Default changelog if empty
+        if [[ -z "$changelog" ]]; then
+          changelog="Auto-generated release"
+        fi
+
+        # Collect assets (if any)
+        assets=()
+        for file in dist/*.zip dist/*.tar.gz; do
+          [[ -f "$file" ]] && assets+=("$file")
+        done
+
+        echo "Creating **draft** GitHub release for tag: $tag"
+
+        # Create draft release
+        if ((${#assets[@]} > 0)); then
+          gh release create "$tag" \
+            --title "Release $tag" \
+            --notes "$changelog" \
+            --draft \
+            "${assets[@]}"
+        else
+          gh release create "$tag" \
+            --title "Release $tag" \
+            --notes "$changelog" \
+            --draft
+        fi
+
+        html_url=$(gh release view "$tag" --json url --jq '.url')
+        echo "release_url=$html_url" >> "$GITHUB_OUTPUT"
+
+    - name: Show release link
+      shell: bash
+      run: |
+        tag="${{ steps.generate-tag.outputs.new_tag }}"
+
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "### 🚀 Draft GitHub Release Created" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "🆔 **Tag**: \`$tag\`" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        echo "🔗 **[View Draft Release](${{ steps.create-release.outputs.release_url }})**" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+
+
+

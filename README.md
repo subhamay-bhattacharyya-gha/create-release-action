@@ -14,7 +14,7 @@ A composite GitHub Action that automates semantic versioning and release managem
 - **Commit Verification**: Validates commits before release
 - **Release Conditions Verification**: Ensures all conditions are met before proceeding with release
 
-## Inputs
+## ✅ Outputs
 
 | Name | Description | Required | Default |
 |------|-------------|----------|---------|
@@ -53,6 +53,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
+--
 
 ### With NPM Publishing
 

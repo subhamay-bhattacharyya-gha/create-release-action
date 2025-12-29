@@ -1,7 +1,7 @@
 {
-  "name": "semantic-release-demo",
+  "name": "create-release-action",
   "version": "0.0.0",
-  "description": "A sample project using semantic release with custom plugins.",
+  "description": "Create release GitHub Composite action.",
   "main": "index.js",
   "scripts": {
     "release": "semantic-release"
