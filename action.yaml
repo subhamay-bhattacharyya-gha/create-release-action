@@ -31,13 +31,13 @@ runs:
         fi
 
     - name: Checkout Repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
         ref: ${{ steps.set-ref.outputs.ref }}
 
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: '3.x'
         
